@@ -1,0 +1,132 @@
+name: CI/CD Inventory API
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+    inputs:
+      publish_docs:
+        description: "Publier la documentation sur GitHub Pages"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+env:
+  PYTHON_VERSION: "3.11"
+  PUBLISH_DOCS: "false"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: Installer, analyser, tester et générer la documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer les sources
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Installer le projet et ses dépendances dev
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Installer uniquement les outils qualité absents du pyproject.toml
+        run: |
+          pip install bandit flake8 pydocstyle
+
+      - name: Analyse statique Python avec flake8
+        run: |
+          flake8 src tests
+
+      - name: Vérifier les docstrings et la conformité PEP 257 avec pydocstyle
+        run: |
+          pydocstyle src
+
+      - name: Vérification complémentaire Ruff
+        run: |
+          ruff check src tests
+
+      - name: Analyse de sécurité avec Bandit
+        run: |
+          bandit -r src
+
+      - name: Lancer le serveur FastAPI
+        run: |
+          uvicorn inventory_api.main:app --host 127.0.0.1 --port 8000 &
+          echo $! > uvicorn.pid
+
+      - name: Vérifier que l’API FastAPI répond
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:8000/docs > /dev/null; then
+              echo "API disponible"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Erreur : l’API n’a pas démarré correctement"
+          exit 1
+
+      - name: Lancer les tests pytest
+        run: |
+          pytest -v
+
+      - name: Arrêter le serveur FastAPI
+        if: always()
+        run: |
+          if [ -f uvicorn.pid ]; then
+            kill "$(cat uvicorn.pid)" || true
+          fi
+
+      - name: Générer la documentation MkDocs
+        run: |
+          mkdocs build --strict --site-dir site
+
+      - name: Configurer GitHub Pages
+        if: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.publish_docs == 'true' || env.PUBLISH_DOCS == 'true') }}
+        uses: actions/configure-pages@v5
+
+      - name: Préparer l’artefact GitHub Pages
+        if: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.publish_docs == 'true' || env.PUBLISH_DOCS == 'true') }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy-docs:
+    name: Publier la documentation sur GitHub Pages
+    needs: ci
+    runs-on: ubuntu-latest
+
+    if: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.publish_docs == 'true' || env.PUBLISH_DOCS == 'true') }}
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Déployer sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
