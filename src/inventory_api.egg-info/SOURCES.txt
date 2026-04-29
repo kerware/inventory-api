@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/inventory_api/__init__.py
+src/inventory_api/main.py
+src/inventory_api/models.py
+src/inventory_api.egg-info/PKG-INFO
+src/inventory_api.egg-info/SOURCES.txt
+src/inventory_api.egg-info/dependency_links.txt
+src/inventory_api.egg-info/requires.txt
+src/inventory_api.egg-info/top_level.txt
+src/inventory_api/routers/__init__.py
+src/inventory_api/routers/products.py
+src/inventory_api/services/__init__.py
+src/inventory_api/services/product_service.py
+tests/test_products_api.py
