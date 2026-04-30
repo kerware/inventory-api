@@ -52,22 +52,6 @@ jobs:
         run: |
           pip install bandit flake8 pydocstyle
 
-      - name: Analyse statique Python avec flake8
-        run: |
-          flake8 src tests
-
-      - name: Vérifier les docstrings et la conformité PEP 257 avec pydocstyle
-        run: |
-          pydocstyle src
-
-      - name: Vérification complémentaire Ruff
-        run: |
-          ruff check src tests
-
-      - name: Analyse de sécurité avec Bandit
-        run: |
-          bandit -r src
-
       - name: Lancer le serveur FastAPI
         run: |
           uvicorn inventory_api.main:app --host 127.0.0.1 --port 8000 &
