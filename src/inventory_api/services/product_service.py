@@ -7,8 +7,8 @@ class ProductService:
     """Manage products in memory.
 
     This class intentionally stores data in memory to keep the exercise focused
-    on documentation, API structure and tests. A real project would replace this
-    implementation with a repository connected to a database.
+    on documentation, API structure and tests. A real project would replace 
+    this implementation with a repository connected to a database.
     """
 
     def __init__(self) -> None:
