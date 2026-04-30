@@ -85,11 +85,9 @@ jobs:
           mkdocs build --strict --site-dir site
 
       - name: Configurer GitHub Pages
-        if: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.publish_docs == 'true' || vars.PUBLISH_DOCS == 'true') }}
         uses: actions/configure-pages@v5
 
       - name: Préparer l’artefact GitHub Pages
-        if: ${{ github.ref == 'refs/heads/main' && (github.event.inputs.publish_docs == 'true' || vars.PUBLISH_DOCS == 'true') }}
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
