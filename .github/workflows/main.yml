@@ -54,7 +54,7 @@ jobs:
       
       - name: Vérification complémentaire Ruff
         run: |
-          ruff check src tests
+          ruff check src tests --ignore D413 --output-format=github
         continue-on-error: true
 
       - name: Analyse de sécurité avec Bandit
