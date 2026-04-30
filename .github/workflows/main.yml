@@ -51,6 +51,14 @@ jobs:
       - name: Installer uniquement les outils qualité absents du pyproject.toml
         run: |
           pip install bandit flake8 pydocstyle
+      
+      - name: Vérification complémentaire Ruff
+        run: |
+          ruff check src tests
+
+      - name: Analyse de sécurité avec Bandit
+        run: |
+          bandit -r src
 
       - name: Lancer le serveur FastAPI
         run: |
