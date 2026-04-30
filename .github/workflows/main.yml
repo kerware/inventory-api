@@ -55,12 +55,12 @@ jobs:
       - name: Vérification complémentaire Ruff
         run: |
           ruff check src tests
-          continue-on-error: true
+        continue-on-error: true
 
       - name: Analyse de sécurité avec Bandit
         run: |
           bandit -r src
-          continue-on-error: true
+        continue-on-error: true
 
       - name: Lancer le serveur FastAPI
         run: |
